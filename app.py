@@ -76,7 +76,7 @@ def fetch_articles(api_key: str, topic: str, pages: int = 5) -> pd.DataFrame:
 			"headline": headlines,
 			"snippet": snippets,
 			"abstract": abstracts,
-            'link': links,
+			'link': links,
 			"pub_date": pd.to_datetime(pub_dates, errors="coerce"),
 		}
 	)
@@ -116,13 +116,21 @@ def add_sentiments(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def main():
+	nltk.download('all')
 	# UI
 	st.title("NYTimes Topic Sentiment Explorer")
 	st.caption("Fetch NYTimes articles, process text, and summarize sentiment.")
 
-	# Load .env
-	load_dotenv("./.env")
-	api_key = os.getenv("API_KEY")
+	try:
+		api_key = st.secrets["API_KEY"]
+	except (KeyError, FileNotFoundError):
+		from dotenv import load_dotenv
+		load_dotenv("./.env")
+		api_key = os.getenv("API_KEY")
+
+	if not api_key:
+		st.error("API_KEY not found. Add it to Streamlit secrets or .env file.")
+		st.stop()
 
 	# Inputs
 	topic = st.text_input("Topic", value="AI")
